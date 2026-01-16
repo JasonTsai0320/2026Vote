@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iTree 互動投票系統</title>
+    <title>iTree 互動投票儀表板</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -13,22 +13,22 @@
 
     <style>
         :root {
-            /* 顏色定義 */
-            --bg-gray: #333333;
-            /* 防反光深灰背景 */
-            --green-main: #1b5e20;
-            /* 森林深綠 */
-            --green-light: #2e7d32;
-            /* 森林亮綠 */
-            --gold: linear-gradient(to bottom, #cfb53b 0%, #d4af37 22%, #f1c40f 50%, #d4af37 78%, #cfb53b 100%);
-            --text-gold: #f1c40f;
+            --bg-light-gray: #f4f4f4;
+            /* 極淺灰背景 */
+            --blue-main: #1e3a8a;
+            /* 題目專用藍色 */
+            --blue-accent: #3b82f6;
+            /* 題目亮藍 */
+            --iron-gray: #4b5563;
+            /* 投票按鈕鐵灰色 */
+            --gold-gradient: linear-gradient(to bottom, #cfb53b 0%, #f1c40f 50%, #cfb53b 100%);
         }
 
         body {
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
             margin: 0;
-            background-color: var(--bg-gray);
-            color: #ffffff;
+            background-color: var(--bg-light-gray);
+            color: #333;
             display: flex;
             justify-content: center;
             min-height: 100vh;
@@ -36,32 +36,31 @@
 
         .wrapper {
             width: 100%;
-            max-width: 1000px;
-            padding: 40px 20px;
+            max-width: 900px;
+            padding: 30px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             box-sizing: border-box;
         }
 
-        /* --- 題目區塊：綠色設計感 --- */
+        /* --- 題目區塊：藍色系 --- */
         .question-card {
-            background: linear-gradient(135deg, var(--green-main), var(--green-light));
-            padding: 30px 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, var(--blue-main), var(--blue-accent));
+            padding: 25px 35px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             width: 100%;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
+            text-align: center;
         }
 
         #title-display {
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 900;
             color: #ffffff;
             margin: 0;
-            line-height: 1.3;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         /* --- 管理者介面佈局 --- */
@@ -71,74 +70,72 @@
         }
 
         #qrcode {
-            padding: 15px;
+            padding: 10px;
             background: white;
-            border: 6px solid var(--green-light);
-            border-radius: 25px;
+            border: 4px solid var(--blue-main);
+            border-radius: 20px;
             display: inline-block;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .chart-frame {
-            height: 480px;
+            height: 400px;
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
+            background: white;
             padding: 20px;
-            border-radius: 20px;
-            margin-top: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
 
-        /* --- 投票者介面 (直立) --- */
+        /* --- 投票者介面 (鐵灰按鈕) --- */
         .btn-list {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
             width: 100%;
         }
 
         .vote-item {
-            padding: 25px;
-            font-size: 1.8rem;
+            padding: 22px;
+            font-size: 1.6rem;
             font-weight: 900;
-            background: linear-gradient(to right, #2e7d32, #1b5e20);
+            background-color: var(--iron-gray);
             color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
+            border: none;
+            border-radius: 15px;
             cursor: pointer;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
             transition: 0.2s;
         }
 
         .vote-item:active {
-            transform: scale(0.96);
+            transform: translateY(2px);
+            background-color: #374151;
         }
 
-        /* --- 品牌底標 (Logo & iTree) --- */
+        /* --- 品牌底標：iTree (金色字體縮小) --- */
         .brand-footer {
             margin-top: auto;
-            /* 推到最底部 */
-            padding-top: 60px;
-            padding-bottom: 40px;
+            padding: 40px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            opacity: 0.9;
         }
 
         .logo-img {
-            width: 80px;
-            /* 根據您的 Logo 比例調整 */
-            margin-bottom: 10px;
+            width: 60px;
+            margin-bottom: 8px;
         }
 
         .brand-text {
             font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            background: var(--gold);
+            font-size: 1.6rem;
+            /* 縮小字體 */
+            background: var(--gold-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: bold;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
         }
 
         .hidden {
@@ -157,8 +154,8 @@
 
         <div id="view-admin" class="admin-dashboard hidden">
             <div id="qrcode"></div>
-            <p style="font-weight: bold; color: #aaa; font-size: 1.3rem;">
-                <i class="fa-solid fa-camera"></i> 掃碼參與現場互動
+            <p style="font-weight: bold; color: #666; font-size: 1.1rem; margin-bottom: 20px;">
+                <i class="fa-solid fa-qrcode"></i> 掃碼參與即時投票
             </p>
             <div class="chart-frame">
                 <canvas id="mainChart"></canvas>
@@ -167,7 +164,9 @@
 
         <div id="view-voter" class="btn-list hidden">
             <div id="button-container" class="btn-list"></div>
-            <p id="msg" style="text-align: center; font-size: 1.4rem; margin-top: 20px; color: var(--text-gold);"></p>
+            <p id="msg"
+                style="text-align: center; font-size: 1.2rem; margin-top: 15px; font-weight: bold; color: var(--blue-main);">
+            </p>
         </div>
 
         <div class="brand-footer">
@@ -189,7 +188,7 @@
             if (isAdmin) {
                 document.getElementById('view-admin').classList.remove('hidden');
                 const url = window.location.origin + window.location.pathname;
-                new QRCode(document.getElementById("qrcode"), { text: url, width: 280, height: 280 });
+                new QRCode(document.getElementById("qrcode"), { text: url, width: 220, height: 220 });
 
                 updateChart();
                 setInterval(updateChart, 3000);
@@ -216,9 +215,9 @@
                             labels: labels,
                             datasets: [{
                                 data: votes,
-                                backgroundColor: '#2ecc71',
-                                borderRadius: 15,
-                                barThickness: 45
+                                backgroundColor: '#3b82f6', /* 統計長條改為藍色系 */
+                                borderRadius: 10,
+                                barThickness: 40
                             }]
                         },
                         options: {
@@ -228,10 +227,10 @@
                             plugins: {
                                 legend: { display: false },
                                 datalabels: {
-                                    color: '#f1c40f', // 數字標籤使用金色
+                                    color: '#1e3a8a', /* 數字標籤改為深藍色，易讀性更高 */
                                     anchor: 'end',
                                     align: 'right',
-                                    font: { size: 26, weight: 'bold' },
+                                    font: { size: 22, weight: 'bold' },
                                     formatter: (v) => v + " 票"
                                 }
                             },
@@ -239,13 +238,10 @@
                                 x: { display: false, beginAtZero: true },
                                 y: {
                                     grid: { display: false },
-                                    ticks: {
-                                        font: { size: 24, weight: 'bold' },
-                                        color: '#ffffff'
-                                    }
+                                    ticks: { font: { size: 20, weight: 'bold' }, color: '#4b5563' }
                                 }
                             },
-                            layout: { padding: { right: 100 } }
+                            layout: { padding: { right: 80 } }
                         }
                     });
                 } else {
@@ -273,13 +269,14 @@
         }
 
         async function send(qid, val) {
-            document.getElementById('msg').innerText = "⏳ 品牌投票中...";
+            const msg = document.getElementById('msg');
+            msg.innerText = "⏳ 傳送中...";
             document.querySelectorAll('.vote-item').forEach(b => b.disabled = true);
             try {
                 await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ questionId: qid, option: val }) });
-                document.getElementById('msg').innerHTML = "✨ 投票成功！感謝支持 iTree";
+                msg.innerHTML = "✅ 成功！感謝支持 iTree";
             } catch (e) {
-                document.getElementById('msg').innerText = "連線失敗";
+                msg.innerText = "連線失敗";
             }
         }
 
