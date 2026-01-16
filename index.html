@@ -13,21 +13,21 @@
 
     <style>
         :root {
-            --bg-light-gray: #f4f4f4;
-            /* 極淺灰背景 */
-            --blue-main: #1e3a8a;
-            /* 題目專用藍色 */
-            --blue-accent: #3b82f6;
-            /* 題目亮藍 */
+            --bg-ultra-light: #f8f9fa;
+            /* 極淺灰色背景 */
+            --blue-navy: #1e3a8a;
+            /* 題目深藍 */
+            --blue-vibrant: #3b82f6;
+            /* 統計亮藍 */
             --iron-gray: #4b5563;
-            /* 投票按鈕鐵灰色 */
+            /* 投票按鈕鐵灰 */
             --gold-gradient: linear-gradient(to bottom, #cfb53b 0%, #f1c40f 50%, #cfb53b 100%);
         }
 
         body {
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
             margin: 0;
-            background-color: var(--bg-light-gray);
+            background-color: var(--bg-ultra-light);
             color: #333;
             display: flex;
             justify-content: center;
@@ -36,101 +36,98 @@
 
         .wrapper {
             width: 100%;
-            max-width: 900px;
-            padding: 30px 20px;
+            max-width: 850px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            box-sizing: border-box;
         }
 
-        /* --- 題目區塊：藍色系 --- */
-        .question-card {
-            background: linear-gradient(135deg, var(--blue-main), var(--blue-accent));
-            padding: 25px 35px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            margin-bottom: 25px;
-            text-align: center;
-        }
-
-        #title-display {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: #ffffff;
-            margin: 0;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
-        }
-
-        /* --- 管理者介面佈局 --- */
+        /* --- 管理者介面佈局優化 --- */
         .admin-dashboard {
             width: 100%;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        #qrcode {
-            padding: 10px;
+        /* 1. QR Code 放在最上方 */
+        .qr-section {
             background: white;
-            border: 4px solid var(--blue-main);
+            padding: 12px;
             border-radius: 20px;
+            border: 3px solid var(--blue-navy);
             display: inline-block;
-            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
         }
 
+        /* 2. 題目放在中間 */
+        .question-card {
+            background: linear-gradient(135deg, var(--blue-navy), var(--blue-vibrant));
+            padding: 15px 30px;
+            border-radius: 12px;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        #title-display {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        /* 3. 統計放在下方 */
         .chart-frame {
-            height: 400px;
+            height: 350px;
             width: 100%;
             background: white;
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
         }
 
-        /* --- 投票者介面 (鐵灰按鈕) --- */
-        .btn-list {
+        /* --- 投票者模式 (鐵灰按鈕) --- */
+        .voter-view {
+            width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            width: 100%;
+            gap: 12px;
         }
 
         .vote-item {
-            padding: 22px;
-            font-size: 1.6rem;
-            font-weight: 900;
+            padding: 20px;
+            font-size: 1.5rem;
+            font-weight: 800;
             background-color: var(--iron-gray);
             color: white;
             border: none;
-            border-radius: 15px;
+            border-radius: 12px;
             cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .vote-item:active {
-            transform: translateY(2px);
-            background-color: #374151;
-        }
-
-        /* --- 品牌底標：iTree (金色字體縮小) --- */
+        /* --- 品牌底標：iTree (極小精緻版) --- */
         .brand-footer {
             margin-top: auto;
-            padding: 40px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 30px 0;
+            text-align: center;
         }
 
         .logo-img {
-            width: 60px;
-            margin-bottom: 8px;
+            width: 40px;
+            /* 縮小 Logo */
+            margin-bottom: 4px;
         }
 
         .brand-text {
             font-family: 'Playfair Display', serif;
-            font-size: 1.6rem;
-            /* 縮小字體 */
+            font-size: 1.2rem;
+            /* 縮小文字 */
             background: var(--gold-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -148,24 +145,28 @@
 
     <div class="wrapper">
 
-        <div class="question-card">
-            <h1 id="title-display">載入中...</h1>
-        </div>
-
         <div id="view-admin" class="admin-dashboard hidden">
-            <div id="qrcode"></div>
-            <p style="font-weight: bold; color: #666; font-size: 1.1rem; margin-bottom: 20px;">
-                <i class="fa-solid fa-qrcode"></i> 掃碼參與即時投票
-            </p>
+            <div class="qr-section">
+                <div id="qrcode"></div>
+            </div>
+
+            <p style="color: #888; font-size: 1rem; margin-top: -10px; margin-bottom: 15px;">掃碼即時互動</p>
+
+            <div class="question-card">
+                <h1 id="title-admin">載入中...</h1>
+            </div>
+
             <div class="chart-frame">
                 <canvas id="mainChart"></canvas>
             </div>
         </div>
 
-        <div id="view-voter" class="btn-list hidden">
-            <div id="button-container" class="btn-list"></div>
-            <p id="msg"
-                style="text-align: center; font-size: 1.2rem; margin-top: 15px; font-weight: bold; color: var(--blue-main);">
+        <div id="view-voter" class="voter-view hidden">
+            <div class="question-card" style="margin-bottom: 25px;">
+                <h1 id="title-voter" style="font-size: 1.8rem;">載入中...</h1>
+            </div>
+            <div id="btn-group" class="voter-view"></div>
+            <p id="feedback" style="text-align: center; font-weight: bold; color: var(--blue-navy); margin-top: 15px;">
             </p>
         </div>
 
@@ -180,7 +181,7 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzCQPix_vOuIbrKRnqYXBe2qH5wvHGzmUYCHWl8xZx_1jSVsXPbknzJe5H9PbiycaU-DQ/exec";
         const isAdmin = new URLSearchParams(window.location.search).get('mode') === 'admin';
-        let myChart = null;
+        let chartInstance = null;
 
         Chart.register(ChartDataLabels);
 
@@ -188,36 +189,36 @@
             if (isAdmin) {
                 document.getElementById('view-admin').classList.remove('hidden');
                 const url = window.location.origin + window.location.pathname;
-                new QRCode(document.getElementById("qrcode"), { text: url, width: 220, height: 220 });
+                new QRCode(document.getElementById("qrcode"), { text: url, width: 200, height: 200 });
 
-                updateChart();
-                setInterval(updateChart, 3000);
+                sync();
+                setInterval(sync, 3000);
             } else {
                 document.getElementById('view-voter').classList.remove('hidden');
-                setupButtons();
+                setup();
             }
         }
 
-        async function updateChart() {
+        async function sync() {
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                document.getElementById('title-display').innerText = data.question.title;
+                document.getElementById('title-admin').innerText = data.question.title;
 
                 const labels = Object.keys(data.stats);
                 const votes = Object.values(data.stats);
 
-                if (!myChart) {
+                if (!chartInstance) {
                     const ctx = document.getElementById('mainChart').getContext('2d');
-                    myChart = new Chart(ctx, {
+                    chartInstance = new Chart(ctx, {
                         type: 'bar',
                         data: {
                             labels: labels,
                             datasets: [{
                                 data: votes,
-                                backgroundColor: '#3b82f6', /* 統計長條改為藍色系 */
-                                borderRadius: 10,
-                                barThickness: 40
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 8,
+                                barThickness: 35
                             }]
                         },
                         options: {
@@ -227,10 +228,10 @@
                             plugins: {
                                 legend: { display: false },
                                 datalabels: {
-                                    color: '#1e3a8a', /* 數字標籤改為深藍色，易讀性更高 */
+                                    color: '#1e3a8a',
                                     anchor: 'end',
                                     align: 'right',
-                                    font: { size: 22, weight: 'bold' },
+                                    font: { size: 20, weight: 'bold' },
                                     formatter: (v) => v + " 票"
                                 }
                             },
@@ -238,45 +239,44 @@
                                 x: { display: false, beginAtZero: true },
                                 y: {
                                     grid: { display: false },
-                                    ticks: { font: { size: 20, weight: 'bold' }, color: '#4b5563' }
+                                    ticks: { font: { size: 18, weight: 'bold' }, color: '#4b5563' }
                                 }
                             },
-                            layout: { padding: { right: 80 } }
+                            layout: { padding: { right: 70 } }
                         }
                     });
                 } else {
-                    myChart.data.labels = labels;
-                    myChart.data.datasets[0].data = votes;
-                    myChart.update();
+                    chartInstance.data.labels = labels;
+                    chartInstance.data.datasets[0].data = votes;
+                    chartInstance.update();
                 }
             } catch (e) { }
         }
 
-        async function setupButtons() {
+        async function setup() {
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                document.getElementById('title-display').innerText = data.question.title;
-                const box = document.getElementById('button-container');
+                document.getElementById('title-voter').innerText = data.question.title;
+                const container = document.getElementById('btn-group');
                 data.question.options.forEach(opt => {
-                    const btn = document.createElement('button');
-                    btn.className = 'vote-item';
-                    btn.innerText = opt;
-                    btn.onclick = () => send(data.question.id, opt);
-                    box.appendChild(btn);
+                    const b = document.createElement('button');
+                    b.className = 'vote-item';
+                    b.innerText = opt;
+                    b.onclick = () => vote(data.question.id, opt);
+                    container.appendChild(b);
                 });
             } catch (e) { }
         }
 
-        async function send(qid, val) {
-            const msg = document.getElementById('msg');
-            msg.innerText = "⏳ 傳送中...";
+        async function vote(qid, val) {
+            document.getElementById('feedback').innerText = "⏳ 傳送中...";
             document.querySelectorAll('.vote-item').forEach(b => b.disabled = true);
             try {
                 await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ questionId: qid, option: val }) });
-                msg.innerHTML = "✅ 成功！感謝支持 iTree";
+                document.getElementById('feedback').innerHTML = "✅ 成功！感謝參與 iTree";
             } catch (e) {
-                msg.innerText = "連線失敗";
+                document.getElementById('feedback').innerText = "連線失敗";
             }
         }
 
