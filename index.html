@@ -4,143 +4,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動投票儀表板</title>
+    <title>iTree 互動投票系統</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg-color: #f8f9fa;
-            --primary-color: #4834d4;
-            --card-bg: #ffffff;
+            /* 顏色定義 */
+            --bg-gray: #333333;
+            /* 防反光深灰背景 */
+            --green-main: #1b5e20;
+            /* 森林深綠 */
+            --green-light: #2e7d32;
+            /* 森林亮綠 */
+            --gold: linear-gradient(to bottom, #cfb53b 0%, #d4af37 22%, #f1c40f 50%, #d4af37 78%, #cfb53b 100%);
+            --text-gold: #f1c40f;
         }
 
         body {
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
             margin: 0;
-            background-color: var(--bg-color);
+            background-color: var(--bg-gray);
+            color: #ffffff;
             display: flex;
             justify-content: center;
+            min-height: 100vh;
         }
 
-        .main-container {
+        .wrapper {
             width: 100%;
             max-width: 1000px;
-            padding: 20px;
-        }
-
-        /* --- 管理者介面 (儀表板) --- */
-        .admin-dashboard {
-            background: var(--card-bg);
-            border-radius: 30px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .live-status {
-            display: inline-flex;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            background: #ffeaa7;
-            padding: 8px 20px;
-            border-radius: 50px;
+            box-sizing: border-box;
+        }
+
+        /* --- 題目區塊：綠色設計感 --- */
+        .question-card {
+            background: linear-gradient(135deg, var(--green-main), var(--green-light));
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #title-display {
+            font-size: 3rem;
             font-weight: 900;
-            color: #d63031;
-            margin-bottom: 25px;
-            font-size: 1.1rem;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1.3;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
 
-        .pulse-dot {
-            width: 12px;
-            height: 12px;
-            background: #d63031;
-            border-radius: 50%;
-            margin-right: 10px;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(214, 48, 49, 0.7);
-            }
-
-            70% {
-                transform: scale(1.1);
-                box-shadow: 0 0 0 12px rgba(214, 48, 49, 0);
-            }
-
-            100% {
-                transform: scale(0.95);
-            }
+        /* --- 管理者介面佈局 --- */
+        .admin-dashboard {
+            width: 100%;
+            text-align: center;
         }
 
         #qrcode {
-            background: white;
             padding: 15px;
+            background: white;
+            border: 6px solid var(--green-light);
+            border-radius: 25px;
             display: inline-block;
-            border: 5px solid var(--primary-color);
-            border-radius: 20px;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
 
-        .admin-question {
-            font-size: 2.8rem;
-            font-weight: 900;
-            margin: 35px 0;
-            color: #2d3436;
-            line-height: 1.2;
-        }
-
-        .chart-container {
-            height: 500px;
-            /* 增加高度給橫條圖 */
+        .chart-frame {
+            height: 480px;
             width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 20px;
             margin-top: 20px;
         }
 
-        /* --- 投票者介面 --- */
-        .voter-view {
-            background: white;
-            padding: 40px 25px;
-            border-radius: 25px;
-            text-align: center;
-        }
-
-        .voter-question {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 40px;
-            color: var(--primary-color);
-        }
-
-        .vote-btn {
-            display: block;
+        /* --- 投票者介面 (直立) --- */
+        .btn-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
             width: 100%;
-            padding: 22px;
-            margin: 15px 0;
-            font-size: 1.5rem;
-            /* 字體加大 */
+        }
+
+        .vote-item {
+            padding: 25px;
+            font-size: 1.8rem;
             font-weight: 900;
-            /* 加粗 */
-            background: var(--primary-color);
+            background: linear-gradient(to right, #2e7d32, #1b5e20);
             color: white;
-            border: none;
-            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
             cursor: pointer;
-            box-shadow: 0 6px 15px rgba(72, 52, 212, 0.2);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
             transition: 0.2s;
         }
 
-        .vote-btn:hover {
-            background: #3c2bb3;
-            transform: translateY(-3px);
+        .vote-item:active {
+            transform: scale(0.96);
         }
 
-        .vote-btn:active {
-            transform: translateY(0);
+        /* --- 品牌底標 (Logo & iTree) --- */
+        .brand-footer {
+            margin-top: auto;
+            /* 推到最底部 */
+            padding-top: 60px;
+            padding-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0.9;
+        }
+
+        .logo-img {
+            width: 80px;
+            /* 根據您的 Logo 比例調整 */
+            margin-bottom: 10px;
+        }
+
+        .brand-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            background: var(--gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            letter-spacing: 2px;
         }
 
         .hidden {
@@ -151,31 +149,31 @@
 
 <body>
 
-    <div class="main-container">
+    <div class="wrapper">
 
-        <div id="admin-section" class="admin-dashboard hidden">
-            <div class="live-status">
-                <div class="pulse-dot"></div> 📊 現場即時統計中
-            </div>
+        <div class="question-card">
+            <h1 id="title-display">載入中...</h1>
+        </div>
 
-            <div class="qr-area">
-                <div id="qrcode"></div>
-                <p style="font-weight: 900; font-size: 1.4rem; color: #636e72;">
-                    <i class="fa-solid fa-camera"></i> 掃描 QR Code 參與
-                </p>
-            </div>
-
-            <div id="q-display" class="admin-question">載入題目中...</div>
-
-            <div class="chart-container">
-                <canvas id="horizontalChart"></canvas>
+        <div id="view-admin" class="admin-dashboard hidden">
+            <div id="qrcode"></div>
+            <p style="font-weight: bold; color: #aaa; font-size: 1.3rem;">
+                <i class="fa-solid fa-camera"></i> 掃碼參與現場互動
+            </p>
+            <div class="chart-frame">
+                <canvas id="mainChart"></canvas>
             </div>
         </div>
 
-        <div id="voter-section" class="voter-view hidden">
-            <div id="vq-display" class="voter-question">載入題目中...</div>
-            <div id="btn-group"></div>
-            <p id="feedback" style="margin-top: 30px; font-weight: 900; font-size: 1.2rem;"></p>
+        <div id="view-voter" class="btn-list hidden">
+            <div id="button-container" class="btn-list"></div>
+            <p id="msg" style="text-align: center; font-size: 1.4rem; margin-top: 20px; color: var(--text-gold);"></p>
+        </div>
+
+        <div class="brand-footer">
+            <img src="https://raw.githubusercontent.com/jasontsai0320/2026Vote/main/logo.png" class="logo-img"
+                onerror="this.style.display='none'">
+            <div class="brand-text">iTree</div>
         </div>
 
     </div>
@@ -183,108 +181,105 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzCQPix_vOuIbrKRnqYXBe2qH5wvHGzmUYCHWl8xZx_1jSVsXPbknzJe5H9PbiycaU-DQ/exec";
         const isAdmin = new URLSearchParams(window.location.search).get('mode') === 'admin';
-        let chart = null;
+        let myChart = null;
 
-        // 註冊 DataLabels 插件
         Chart.register(ChartDataLabels);
 
         async function init() {
             if (isAdmin) {
-                document.getElementById('admin-section').classList.remove('hidden');
-                const currentUrl = window.location.origin + window.location.pathname;
-                new QRCode(document.getElementById("qrcode"), { text: currentUrl, width: 250, height: 250 });
+                document.getElementById('view-admin').classList.remove('hidden');
+                const url = window.location.origin + window.location.pathname;
+                new QRCode(document.getElementById("qrcode"), { text: url, width: 280, height: 280 });
 
-                refreshStats();
-                setInterval(refreshStats, 3000);
+                updateChart();
+                setInterval(updateChart, 3000);
             } else {
-                document.getElementById('voter-section').classList.remove('hidden');
-                loadVoterUI();
+                document.getElementById('view-voter').classList.remove('hidden');
+                setupButtons();
             }
         }
 
-        async function refreshStats() {
+        async function updateChart() {
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                document.getElementById('q-display').innerText = data.question.title;
+                document.getElementById('title-display').innerText = data.question.title;
 
                 const labels = Object.keys(data.stats);
-                const values = Object.values(data.stats);
+                const votes = Object.values(data.stats);
 
-                if (!chart) {
-                    const ctx = document.getElementById('horizontalChart').getContext('2d');
-                    chart = new Chart(ctx, {
+                if (!myChart) {
+                    const ctx = document.getElementById('mainChart').getContext('2d');
+                    myChart = new Chart(ctx, {
                         type: 'bar',
                         data: {
                             labels: labels,
                             datasets: [{
-                                data: values,
-                                backgroundColor: '#4834d4',
-                                borderRadius: 10,
-                                barThickness: 45 // 調整橫條寬度
+                                data: votes,
+                                backgroundColor: '#2ecc71',
+                                borderRadius: 15,
+                                barThickness: 45
                             }]
                         },
                         options: {
-                            indexAxis: 'y', // ★ 關鍵：轉為橫條圖
+                            indexAxis: 'y',
                             responsive: true,
                             maintainAspectRatio: false,
                             plugins: {
                                 legend: { display: false },
-                                datalabels: { // ★ 關鍵：顯示數字
-                                    color: '#2d3436',
+                                datalabels: {
+                                    color: '#f1c40f', // 數字標籤使用金色
                                     anchor: 'end',
                                     align: 'right',
-                                    offset: 10,
-                                    font: { size: 22, weight: 'bold' },
-                                    formatter: (value) => value + " 票"
+                                    font: { size: 26, weight: 'bold' },
+                                    formatter: (v) => v + " 票"
                                 }
                             },
                             scales: {
-                                x: { display: false, beginAtZero: true }, // 隱藏底部座標軸
+                                x: { display: false, beginAtZero: true },
                                 y: {
                                     grid: { display: false },
                                     ticks: {
-                                        font: { size: 20, weight: 'bold' }, // 選項字體加大加粗
-                                        color: '#2d3436'
+                                        font: { size: 24, weight: 'bold' },
+                                        color: '#ffffff'
                                     }
                                 }
                             },
-                            layout: { padding: { right: 80 } } // 留空間給右側數字
+                            layout: { padding: { right: 100 } }
                         }
                     });
                 } else {
-                    chart.data.labels = labels;
-                    chart.data.datasets[0].data = values;
-                    chart.update();
+                    myChart.data.labels = labels;
+                    myChart.data.datasets[0].data = votes;
+                    myChart.update();
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { }
         }
 
-        async function loadVoterUI() {
+        async function setupButtons() {
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                document.getElementById('vq-display').innerText = data.question.title;
-                const group = document.getElementById('btn-group');
+                document.getElementById('title-display').innerText = data.question.title;
+                const box = document.getElementById('button-container');
                 data.question.options.forEach(opt => {
-                    const b = document.createElement('button');
-                    b.className = 'vote-btn';
-                    b.innerText = opt;
-                    b.onclick = () => doVote(data.question.id, opt);
-                    group.appendChild(b);
+                    const btn = document.createElement('button');
+                    btn.className = 'vote-item';
+                    btn.innerText = opt;
+                    btn.onclick = () => send(data.question.id, opt);
+                    box.appendChild(btn);
                 });
             } catch (e) { }
         }
 
-        async function doVote(qid, opt) {
-            document.getElementById('feedback').innerText = "⏳ 傳送投票中...";
-            document.querySelectorAll('.vote-btn').forEach(btn => btn.disabled = true);
+        async function send(qid, val) {
+            document.getElementById('msg').innerText = "⏳ 品牌投票中...";
+            document.querySelectorAll('.vote-item').forEach(b => b.disabled = true);
             try {
-                await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ questionId: qid, option: opt }) });
-                document.getElementById('feedback').innerHTML = "<i class='fa-solid fa-heart'></i> 投票成功！請抬頭看結果";
-                document.getElementById('feedback').style.color = "#2ecc71";
+                await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ questionId: qid, option: val }) });
+                document.getElementById('msg').innerHTML = "✨ 投票成功！感謝支持 iTree";
             } catch (e) {
-                document.getElementById('feedback').innerText = "連線失敗，請重試";
+                document.getElementById('msg').innerText = "連線失敗";
             }
         }
 
