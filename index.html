@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iTree 互動投票儀表板</title>
+    <title>iTree 互動投票系統 - Final</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -13,14 +13,12 @@
 
     <style>
         :root {
-            --bg-ultra-light: #f8f9fa;
-            /* 極淺灰色背景 */
+            --bg-ultra-light: #f5f6f7;
             --blue-navy: #1e3a8a;
-            /* 題目深藍 */
             --blue-vibrant: #3b82f6;
-            /* 統計亮藍 */
             --iron-gray: #4b5563;
-            /* 投票按鈕鐵灰 */
+            --winner-gold: #FFD700;
+            /* 第一名動態金色 */
             --gold-gradient: linear-gradient(to bottom, #cfb53b 0%, #f1c40f 50%, #cfb53b 100%);
         }
 
@@ -36,14 +34,14 @@
 
         .wrapper {
             width: 100%;
-            max-width: 850px;
+            max-width: 1100px;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* --- 管理者介面佈局優化 --- */
+        /* --- 管理者介面佈局 --- */
         .admin-dashboard {
             width: 100%;
             text-align: center;
@@ -52,48 +50,48 @@
             align-items: center;
         }
 
-        /* 1. QR Code 放在最上方 */
         .qr-section {
             background: white;
-            padding: 12px;
-            border-radius: 20px;
-            border: 3px solid var(--blue-navy);
+            padding: 10px;
+            border-radius: 15px;
+            border: 2px solid var(--blue-navy);
             display: inline-block;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
         }
 
-        /* 2. 題目放在中間 */
         .question-card {
             background: linear-gradient(135deg, var(--blue-navy), var(--blue-vibrant));
             padding: 15px 30px;
-            border-radius: 12px;
+            border-radius: 10px;
             width: 100%;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
-        #title-display {
+        /* 題目文字強制白色 */
+        #title-admin,
+        #title-voter {
             font-size: 2.2rem;
             font-weight: 900;
-            color: #ffffff;
+            color: #ffffff !important;
             margin: 0;
         }
 
-        /* 3. 統計放在下方 */
         .chart-frame {
-            height: 350px;
+            height: 500px;
             width: 100%;
             background: white;
-            padding: 20px;
+            padding: 25px 40px;
             border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             box-sizing: border-box;
         }
 
-        /* --- 投票者模式 (鐵灰按鈕) --- */
+        /* --- 投票者模式 --- */
         .voter-view {
             width: 100%;
+            max-width: 600px;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -108,31 +106,34 @@
             border: none;
             border-radius: 12px;
             cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: 0.2s;
         }
 
-        /* --- 品牌底標：iTree (極小精緻版) --- */
+        .vote-item:active {
+            background-color: #374151;
+        }
+
+        /* --- 品牌底標 --- */
         .brand-footer {
             margin-top: auto;
-            padding: 30px 0;
+            padding: 25px 0;
             text-align: center;
         }
 
         .logo-img {
-            width: 40px;
-            /* 縮小 Logo */
-            margin-bottom: 4px;
+            width: 60px;
+            margin-bottom: 2px;
         }
 
         .brand-text {
             font-family: 'Playfair Display', serif;
-            font-size: 1.2rem;
-            /* 縮小文字 */
+            font-size: 0.9rem;
             background: var(--gold-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: bold;
             letter-spacing: 1px;
+            text-transform: none;
         }
 
         .hidden {
@@ -144,13 +145,11 @@
 <body>
 
     <div class="wrapper">
-
         <div id="view-admin" class="admin-dashboard hidden">
             <div class="qr-section">
                 <div id="qrcode"></div>
             </div>
-
-            <p style="color: #888; font-size: 1rem; margin-top: -10px; margin-bottom: 15px;">掃碼即時互動</p>
+            <p style="color: #999; font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">掃碼即時互動</p>
 
             <div class="question-card">
                 <h1 id="title-admin">載入中...</h1>
@@ -162,7 +161,7 @@
         </div>
 
         <div id="view-voter" class="voter-view hidden">
-            <div class="question-card" style="margin-bottom: 25px;">
+            <div class="question-card">
                 <h1 id="title-voter" style="font-size: 1.8rem;">載入中...</h1>
             </div>
             <div id="btn-group" class="voter-view"></div>
@@ -175,7 +174,6 @@
                 onerror="this.style.display='none'">
             <div class="brand-text">iTree</div>
         </div>
-
     </div>
 
     <script>
@@ -189,7 +187,7 @@
             if (isAdmin) {
                 document.getElementById('view-admin').classList.remove('hidden');
                 const url = window.location.origin + window.location.pathname;
-                new QRCode(document.getElementById("qrcode"), { text: url, width: 200, height: 200 });
+                new QRCode(document.getElementById("qrcode"), { text: url, width: 250, height: 250 });
 
                 sync();
                 setInterval(sync, 3000);
@@ -208,6 +206,10 @@
                 const labels = Object.keys(data.stats);
                 const votes = Object.values(data.stats);
 
+                // --- 動態金色邏輯：找出第一名 ---
+                const maxVotes = Math.max(...votes);
+                const backgroundColors = votes.map(v => (v === maxVotes && maxVotes > 0) ? '#FFD700' : '#3b82f6');
+
                 if (!chartInstance) {
                     const ctx = document.getElementById('mainChart').getContext('2d');
                     chartInstance = new Chart(ctx, {
@@ -216,9 +218,9 @@
                             labels: labels,
                             datasets: [{
                                 data: votes,
-                                backgroundColor: '#3b82f6',
-                                borderRadius: 8,
-                                barThickness: 35
+                                backgroundColor: backgroundColors,
+                                borderRadius: 6,
+                                barThickness: 30
                             }]
                         },
                         options: {
@@ -231,7 +233,7 @@
                                     color: '#1e3a8a',
                                     anchor: 'end',
                                     align: 'right',
-                                    font: { size: 20, weight: 'bold' },
+                                    font: { size: 18, weight: 'bold' },
                                     formatter: (v) => v + " 票"
                                 }
                             },
@@ -242,12 +244,13 @@
                                     ticks: { font: { size: 18, weight: 'bold' }, color: '#4b5563' }
                                 }
                             },
-                            layout: { padding: { right: 70 } }
+                            layout: { padding: { right: 80 } }
                         }
                     });
                 } else {
                     chartInstance.data.labels = labels;
                     chartInstance.data.datasets[0].data = votes;
+                    chartInstance.data.datasets[0].backgroundColor = backgroundColors; // 更新動態顏色
                     chartInstance.update();
                 }
             } catch (e) { }
@@ -270,13 +273,14 @@
         }
 
         async function vote(qid, val) {
-            document.getElementById('feedback').innerText = "⏳ 傳送中...";
+            const fb = document.getElementById('feedback');
+            fb.innerText = "⏳ 傳送中...";
             document.querySelectorAll('.vote-item').forEach(b => b.disabled = true);
             try {
                 await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ questionId: qid, option: val }) });
-                document.getElementById('feedback').innerHTML = "✅ 成功！感謝參與 iTree";
+                fb.innerHTML = "✅ 成功！感謝參與 iTree";
             } catch (e) {
-                document.getElementById('feedback').innerText = "連線失敗";
+                fb.innerText = "連線失敗";
             }
         }
 
