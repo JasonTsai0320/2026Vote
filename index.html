@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iTree 互動投票儀表板</title>
+    <title>iTree 互動投票系統</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -40,7 +40,6 @@
             align-items: center;
         }
 
-        /* --- 管理者介面佈局 --- */
         .admin-dashboard {
             width: 100%;
             text-align: center;
@@ -59,7 +58,6 @@
             margin-bottom: 15px;
         }
 
-        /* 試算表連結按鈕樣式 */
         .admin-edit-link {
             display: inline-block;
             margin-top: 10px;
@@ -106,7 +104,6 @@
             box-sizing: border-box;
         }
 
-        /* --- 投票者模式 --- */
         .voter-view {
             width: 100%;
             max-width: 600px;
@@ -131,7 +128,6 @@
             background-color: #374151;
         }
 
-        /* --- 品牌底標 --- */
         .brand-footer {
             margin-top: auto;
             padding: 25px 0;
@@ -166,12 +162,11 @@
             <div class="qr-section">
                 <div id="qrcode"></div>
             </div>
-
             <p style="color: #999; font-size: 0.9rem; margin-top: -10px; margin-bottom: 10px;">掃碼即時互動</p>
 
             <a href="https://docs.google.com/spreadsheets/d/1bZ330IeZKWdxmks13ZgLe3-BgFycQdzukDZ8SUN3u3w/edit?gid=103629779#gid=103629779"
                 target="_blank" class="admin-edit-link">
-                <i class="fa-solid fa-pen-to-square"></i> 題庫編輯控制台
+                <i class="fa-solid fa-pen-to-square"></i> 投票問題 (試算表控制台)
             </a>
 
             <div class="question-card" style="margin-top: 20px;">
@@ -227,6 +222,7 @@
                 const labels = Object.keys(data.stats);
                 const votes = Object.values(data.stats);
 
+                // 動態第一名顏色
                 const maxVotes = Math.max(...votes);
                 const backgroundColors = votes.map(v => (v === maxVotes && maxVotes > 0) ? '#D4AF37' : '#3b82f6');
 
