@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>即時 QR Code 投票系統</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f7f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #options-container {
+            display: grid;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-vote {
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-vote:hover {
+            background: #0056b3;
+        }
+
+        .btn-vote:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        #qrcode {
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        #chart-container {
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        #status-msg {
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1 id="question-title">載入中...</h1>
+
+        <div id="admin-view" class="hidden">
+            <div id="qrcode"></div>
+            <p>請掃描 QR Code 進行投票</p>
+            <div id="chart-container">
+                <canvas id="resultsChart"></canvas>
+            </div>
+        </div>
+
+        <div id="voter-view" class="hidden">
+            <div id="options-container"></div>
+            <p id="status-msg"></p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzCQPix_vOuIbrKRnqYXBe2qH5wvHGzmUYCHWl8xZx_1jSVsXPbknzJe5H9PbiycaU-DQ/exec";
+
+        // 判斷當前模式
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode') || 'vote'; // 預設為投票模式
+
+        let chart = null;
+        let currentQuestionId = null;
+
+        // 初始化
+        async function init() {
+            if (mode === 'admin') {
+                document.getElementById('admin-view').classList.remove('hidden');
+                generateQRCode();
+                updateStats();
+                setInterval(updateStats, 3000); // 管理者每 3 秒更新一次統計
+            } else {
+                document.getElementById('voter-view').classList.remove('hidden');
+                loadQuestion();
+            }
+        }
+
+        // 產生目前網址的 QR Code (供人投票)
+        function generateQRCode() {
+            const voteUrl = window.location.href.replace('mode=admin', 'mode=vote');
+            new QRCode(document.getElementById("qrcode"), {
+                text: voteUrl,
+                width: 200,
+                height: 200
+            });
+        }
+
+        // 加載題目與選項 (投票者)
+        async function loadQuestion() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                document.getElementById('question-title').innerText = data.question.title;
+                currentQuestionId = data.question.id;
+
+                const container = document.getElementById('options-container');
+                container.innerHTML = '';
+
+                data.question.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-vote';
+                    btn.innerText = opt;
+                    btn.onclick = () => submitVote(opt);
+                    container.appendChild(btn);
+                });
+            } catch (err) {
+                document.getElementById('question-title').innerText = "無法載入題目，請稍後再試";
+            }
+        }
+
+        // 提交投票
+        async function submitVote(option) {
+            const msg = document.getElementById('status-msg');
+            msg.innerText = "投票中...";
+
+            const btns = document.querySelectorAll('.btn-vote');
+            btns.forEach(b => b.disabled = true);
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // GAS POST 限制
+                    body: JSON.stringify({
+                        questionId: currentQuestionId,
+                        option: option
+                    })
+                });
+                msg.innerText = "投票成功！感謝您的參與。";
+            } catch (err) {
+                msg.innerText = "投票失敗，請檢查網路。";
+                btns.forEach(b => b.disabled = false);
+            }
+        }
+
+        // 更新統計圖表 (管理者)
+        async function updateStats() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                document.getElementById('question-title').innerText = data.question.title;
+                const labels = Object.keys(data.stats);
+                const counts = Object.values(data.stats);
+
+                if (!chart) {
+                    const ctx = document.getElementById('resultsChart').getContext('2d');
+                    chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '票數',
+                                data: counts,
+                                backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                            }]
+                        },
+                        options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                    });
+                } else {
+                    chart.data.labels = labels;
+                    chart.data.datasets[0].data = counts;
+                    chart.update('none'); // 平滑更新
+                }
+            } catch (err) {
+                console.error("更新圖表失敗", err);
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
