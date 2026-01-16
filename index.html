@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iTree 互動投票系統 - Final</title>
+    <title>iTree 互動投票儀表板</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -18,7 +18,7 @@
             --blue-vibrant: #3b82f6;
             --iron-gray: #4b5563;
             --winner-gold: #D4AF37;
-            /* 第一名動態金色 */
+            /* ★ 修改：改為更有質感的深金色 */
             --gold-gradient: linear-gradient(to bottom, #cfb53b 0%, #f1c40f 50%, #cfb53b 100%);
         }
 
@@ -41,7 +41,6 @@
             align-items: center;
         }
 
-        /* --- 管理者介面佈局 --- */
         .admin-dashboard {
             width: 100%;
             text-align: center;
@@ -69,7 +68,6 @@
             margin-bottom: 25px;
         }
 
-        /* 題目文字強制白色 */
         #title-admin,
         #title-voter {
             font-size: 2.2rem;
@@ -88,7 +86,6 @@
             box-sizing: border-box;
         }
 
-        /* --- 投票者模式 --- */
         .voter-view {
             width: 100%;
             max-width: 600px;
@@ -113,7 +110,6 @@
             background-color: #374151;
         }
 
-        /* --- 品牌底標 --- */
         .brand-footer {
             margin-top: auto;
             padding: 25px 0;
@@ -133,7 +129,6 @@
             -webkit-text-fill-color: transparent;
             font-weight: bold;
             letter-spacing: 1px;
-            text-transform: none;
         }
 
         .hidden {
@@ -150,14 +145,10 @@
                 <div id="qrcode"></div>
             </div>
             <p style="color: #999; font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">掃碼即時互動</p>
-
             <div class="question-card">
                 <h1 id="title-admin">載入中...</h1>
             </div>
-
-            <div class="chart-frame">
-                <canvas id="mainChart"></canvas>
-            </div>
+            <div class="chart-frame"><canvas id="mainChart"></canvas></div>
         </div>
 
         <div id="view-voter" class="voter-view hidden">
@@ -188,7 +179,6 @@
                 document.getElementById('view-admin').classList.remove('hidden');
                 const url = window.location.origin + window.location.pathname;
                 new QRCode(document.getElementById("qrcode"), { text: url, width: 250, height: 250 });
-
                 sync();
                 setInterval(sync, 3000);
             } else {
@@ -202,11 +192,10 @@
                 const res = await fetch(API_URL);
                 const data = await res.json();
                 document.getElementById('title-admin').innerText = data.question.title;
-
                 const labels = Object.keys(data.stats);
                 const votes = Object.values(data.stats);
 
-                // --- 動態金色邏輯：找出第一名 ---
+                // 動態判斷第一名顏色
                 const maxVotes = Math.max(...votes);
                 const backgroundColors = votes.map(v => (v === maxVotes && maxVotes > 0) ? '#D4AF37' : '#3b82f6');
 
@@ -230,7 +219,10 @@
                             plugins: {
                                 legend: { display: false },
                                 datalabels: {
-                                    color: '#1e3a8a',
+                                    color: (context) => {
+                                        const val = context.dataset.data[context.dataIndex];
+                                        return (val === maxVotes && maxVotes > 0) ? '#D4AF37' : '#1e3a8a';
+                                    },
                                     anchor: 'end',
                                     align: 'right',
                                     font: { size: 18, weight: 'bold' },
@@ -250,7 +242,7 @@
                 } else {
                     chartInstance.data.labels = labels;
                     chartInstance.data.datasets[0].data = votes;
-                    chartInstance.data.datasets[0].backgroundColor = backgroundColors; // 更新動態顏色
+                    chartInstance.data.datasets[0].backgroundColor = backgroundColors;
                     chartInstance.update();
                 }
             } catch (e) { }
@@ -261,7 +253,17 @@
                 const res = await fetch(API_URL);
                 const data = await res.json();
                 document.getElementById('title-voter').innerText = data.question.title;
+
+                // ★ 防灌票檢查：檢查瀏覽器是否存有該題目的投票紀錄
+                const hasVoted = localStorage.getItem('voted_' + data.question.id);
                 const container = document.getElementById('btn-group');
+                const fb = document.getElementById('feedback');
+
+                if (hasVoted) {
+                    fb.innerHTML = "✨ 您已經投過票囉！請看大螢幕統計結果。";
+                    return; // 不顯示按鈕
+                }
+
                 data.question.options.forEach(opt => {
                     const b = document.createElement('button');
                     b.className = 'vote-item';
@@ -278,9 +280,15 @@
             document.querySelectorAll('.vote-item').forEach(b => b.disabled = true);
             try {
                 await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ questionId: qid, option: val }) });
-                fb.innerHTML = "✅ 成功！感謝參與 iTree";
+
+                // ★ 投票成功後，存入瀏覽器紀錄
+                localStorage.setItem('voted_' + qid, 'true');
+
+                document.getElementById('btn-group').innerHTML = ""; // 隱藏按鈕
+                fb.innerHTML = "✅ 投票成功！感謝參與 iTree";
             } catch (e) {
                 fb.innerText = "連線失敗";
+                document.querySelectorAll('.vote-item').forEach(b => b.disabled = false);
             }
         }
 
