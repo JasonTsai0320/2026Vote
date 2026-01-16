@@ -17,7 +17,7 @@
             --blue-navy: #1e3a8a;
             --blue-vibrant: #3b82f6;
             --iron-gray: #4b5563;
-            --winner-gold: #FFD700;
+            --winner-gold: #D4AF37;
             /* 第一名動態金色 */
             --gold-gradient: linear-gradient(to bottom, #cfb53b 0%, #f1c40f 50%, #cfb53b 100%);
         }
@@ -208,7 +208,7 @@
 
                 // --- 動態金色邏輯：找出第一名 ---
                 const maxVotes = Math.max(...votes);
-                const backgroundColors = votes.map(v => (v === maxVotes && maxVotes > 0) ? '#FFD700' : '#3b82f6');
+                const backgroundColors = votes.map(v => (v === maxVotes && maxVotes > 0) ? '#D4AF37' : '#3b82f6');
 
                 if (!chartInstance) {
                     const ctx = document.getElementById('mainChart').getContext('2d');
