@@ -8,71 +8,102 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
+        :root {
+            --primary-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-bg: #ffffff;
+            --text-main: #2d3436;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f4f7f9;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background: var(--primary-bg);
+            min-height: 100vh;
+            margin: 0;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
             padding: 20px;
         }
 
         .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 600px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 800px;
             text-align: center;
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 20px;
+            color: var(--text-main);
+            font-size: 2.2rem;
+            margin-bottom: 30px;
         }
 
-        #options-container {
+        /* --- 管理者：統計與 QR 樣式 --- */
+        #admin-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .qr-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 16px;
+            border: 2px solid #f1f2f6;
+        }
+
+        #qrcode img {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .chart-section {
+            width: 100%;
+            height: 350px;
+        }
+
+        /* --- 投票者：按鈕樣式 --- */
+        #options-grid {
             display: grid;
-            gap: 10px;
-            margin-top: 20px;
+            grid-template-columns: 1fr;
+            gap: 15px;
         }
 
-        .btn-vote {
-            padding: 15px;
-            font-size: 18px;
-            border: none;
-            border-radius: 8px;
-            background: #007bff;
-            color: white;
+        .vote-btn {
+            background: #f1f2f6;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text-main);
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s ease;
         }
 
-        .btn-vote:hover {
-            background: #0056b3;
+        .vote-btn:hover {
+            background: #e1e2e6;
+            border-color: #667eea;
+            transform: translateY(-2px);
         }
 
-        .btn-vote:disabled {
-            background: #ccc;
+        .vote-btn:active {
+            transform: translateY(0);
+        }
+
+        .vote-btn:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
         }
 
-        #qrcode {
-            margin: 20px auto;
-            display: flex;
-            justify-content: center;
-        }
-
-        #chart-container {
-            width: 100%;
-            margin-top: 30px;
-        }
-
-        #status-msg {
-            margin-top: 15px;
-            color: #666;
-            font-size: 14px;
+        #status-bar {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #636e72;
         }
 
         .hidden {
@@ -84,139 +115,140 @@
 <body>
 
     <div class="container">
-        <h1 id="question-title">載入中...</h1>
+        <h1 id="title">系統載入中...</h1>
 
         <div id="admin-view" class="hidden">
-            <div id="qrcode"></div>
-            <p>請掃描 QR Code 進行投票</p>
-            <div id="chart-container">
-                <canvas id="resultsChart"></canvas>
+            <div id="admin-layout">
+                <div class="qr-section">
+                    <div id="qrcode"></div>
+                    <p style="margin-top: 10px; color: #636e72;">掃描上方 QR Code 立即投票</p>
+                </div>
+                <div class="chart-section">
+                    <canvas id="liveChart"></canvas>
+                </div>
             </div>
         </div>
 
         <div id="voter-view" class="hidden">
-            <div id="options-container"></div>
-            <p id="status-msg"></p>
+            <div id="options-grid"></div>
+            <p id="status-bar"></p>
         </div>
     </div>
 
     <script>
+        // 您的專屬 API 網址
         const API_URL = "https://script.google.com/macros/s/AKfycbzCQPix_vOuIbrKRnqYXBe2qH5wvHGzmUYCHWl8xZx_1jSVsXPbknzJe5H9PbiycaU-DQ/exec";
 
-        // 判斷當前模式
-        const urlParams = new URLSearchParams(window.location.search);
-        const mode = urlParams.get('mode') || 'vote'; // 預設為投票模式
+        const params = new URLSearchParams(window.location.search);
+        const isAdmin = params.get('mode') === 'admin';
+        let chartInstance = null;
+        let currentQid = null;
 
-        let chart = null;
-        let currentQuestionId = null;
-
-        // 初始化
-        async function init() {
-            if (mode === 'admin') {
+        async function startApp() {
+            if (isAdmin) {
                 document.getElementById('admin-view').classList.remove('hidden');
-                generateQRCode();
-                updateStats();
-                setInterval(updateStats, 3000); // 管理者每 3 秒更新一次統計
+                initAdmin();
             } else {
                 document.getElementById('voter-view').classList.remove('hidden');
-                loadQuestion();
+                initVoter();
             }
         }
 
-        // 產生目前網址的 QR Code (供人投票)
-        function generateQRCode() {
-            const voteUrl = window.location.href.replace('mode=admin', 'mode=vote');
+        // --- 管理者邏輯 ---
+        function initAdmin() {
+            // 產生超大 QR Code (320px)
+            const voteUrl = window.location.origin + window.location.pathname;
             new QRCode(document.getElementById("qrcode"), {
                 text: voteUrl,
-                width: 200,
-                height: 200
+                width: 320,
+                height: 320,
+                correctLevel: QRCode.CorrectLevel.H
             });
+
+            // 定期抓取統計數據
+            updateResults();
+            setInterval(updateResults, 3000); // 每 3 秒同步一次
         }
 
-        // 加載題目與選項 (投票者)
-        async function loadQuestion() {
+        async function updateResults() {
             try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
+                const res = await fetch(API_URL);
+                const data = await res.json();
 
-                document.getElementById('question-title').innerText = data.question.title;
-                currentQuestionId = data.question.id;
-
-                const container = document.getElementById('options-container');
-                container.innerHTML = '';
-
-                data.question.options.forEach(opt => {
-                    const btn = document.createElement('button');
-                    btn.className = 'btn-vote';
-                    btn.innerText = opt;
-                    btn.onclick = () => submitVote(opt);
-                    container.appendChild(btn);
-                });
-            } catch (err) {
-                document.getElementById('question-title').innerText = "無法載入題目，請稍後再試";
-            }
-        }
-
-        // 提交投票
-        async function submitVote(option) {
-            const msg = document.getElementById('status-msg');
-            msg.innerText = "投票中...";
-
-            const btns = document.querySelectorAll('.btn-vote');
-            btns.forEach(b => b.disabled = true);
-
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // GAS POST 限制
-                    body: JSON.stringify({
-                        questionId: currentQuestionId,
-                        option: option
-                    })
-                });
-                msg.innerText = "投票成功！感謝您的參與。";
-            } catch (err) {
-                msg.innerText = "投票失敗，請檢查網路。";
-                btns.forEach(b => b.disabled = false);
-            }
-        }
-
-        // 更新統計圖表 (管理者)
-        async function updateStats() {
-            try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
-
-                document.getElementById('question-title').innerText = data.question.title;
+                document.getElementById('title').innerText = data.question.title;
                 const labels = Object.keys(data.stats);
-                const counts = Object.values(data.stats);
+                const votes = Object.values(data.stats);
 
-                if (!chart) {
-                    const ctx = document.getElementById('resultsChart').getContext('2d');
-                    chart = new Chart(ctx, {
+                if (!chartInstance) {
+                    const ctx = document.getElementById('liveChart').getContext('2d');
+                    chartInstance = new Chart(ctx, {
                         type: 'bar',
                         data: {
                             labels: labels,
                             datasets: [{
-                                label: '票數',
-                                data: counts,
-                                backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                                label: '當前票數',
+                                data: votes,
+                                backgroundColor: '#667eea',
+                                borderRadius: 8
                             }]
                         },
-                        options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                        }
                     });
                 } else {
-                    chart.data.labels = labels;
-                    chart.data.datasets[0].data = counts;
-                    chart.update('none'); // 平滑更新
+                    chartInstance.data.labels = labels;
+                    chartInstance.data.datasets[0].data = votes;
+                    chartInstance.update();
                 }
-            } catch (err) {
-                console.error("更新圖表失敗", err);
+            } catch (e) { console.error("Update Error:", e); }
+        }
+
+        // --- 投票者邏輯 ---
+        async function initVoter() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+
+                document.getElementById('title').innerText = data.question.title;
+                currentQid = data.question.id;
+
+                const grid = document.getElementById('options-grid');
+                data.question.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'vote-btn';
+                    btn.innerText = opt;
+                    btn.onclick = () => castVote(opt);
+                    grid.appendChild(btn);
+                });
+            } catch (e) { document.getElementById('title').innerText = "載入失敗"; }
+        }
+
+        async function castVote(option) {
+            const status = document.getElementById('status-bar');
+            status.innerText = "投票傳送中...";
+            document.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
+
+            try {
+                // Google Apps Script 的 POST 需使用 no-cors 模式
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ questionId: currentQid, option: option })
+                });
+                status.innerHTML = "✅ 投票成功！請看大螢幕統計。";
+                status.style.color = "#2ecc71";
+            } catch (e) {
+                status.innerText = "連線發生錯誤，請重試。";
+                document.querySelectorAll('.vote-btn').forEach(b => b.disabled = false);
             }
         }
 
-        init();
+        startApp();
     </script>
+
 </body>
 
 </html>
